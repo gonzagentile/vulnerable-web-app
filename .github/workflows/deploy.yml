@@ -5,6 +5,18 @@ on:
     branches:
       - master
 jobs:
+  scan:
+      name: gitleaks
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+          with:
+            fetch-depth: 0
+        - uses: gitleaks/gitleaks-action@v2
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
   TruffleHog:
     runs-on: ubuntu-latest
     defaults:
@@ -30,15 +42,15 @@ jobs:
         if: steps.trufflehog.outcome == 'failure'
         run: exit 1
 
-  deploy-heroku:
-    name: Deploy Heroku
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
-        with:
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: "gentile-gonzalo" #Must be unique in Heroku
-          heroku_email: "gonza.gentile@gmail.com"
-          branch: "master"
-          usedocker: true
+#  deploy-heroku:
+#    name: Deploy Heroku
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#      - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+#        with:
+#          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+#          heroku_app_name: "gentile-gonzalo" #Must be unique in Heroku
+#          heroku_email: "gonza.gentile@gmail.com"
+#          branch: "master"
+#          usedocker: true
