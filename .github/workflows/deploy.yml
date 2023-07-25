@@ -142,11 +142,12 @@ jobs:
   owasp:
     name: Scan dast owasp
     runs-on: ubuntu-latest
+    needs: deploy-heroku
     steps:
     - uses: actions/checkout@v3
     - name: Run Api Scan 
       run: |
-        docker run --rm -v $(pwd):/zap/wrk/:rw --user root -t owasp/zap2docker-weekly zap-api-scan.py -t https://gentile-gonzalo-8a21783a08a4.herokuapp.com/ -f openapi -m 1 -d -I -x testreport.xml -r testreport.html
+        docker run --rm -v $(pwd):/zap/wrk/:rw --user root -t owasp/zap2docker-weekly zap-full-scan.py -t https://gentile-gonzalo-8a21783a08a4.herokuapp.com/ -d -I -x testreport.xml -r testreport.html
     - uses: actions/upload-artifact@v3
       with:
         name: owasp
