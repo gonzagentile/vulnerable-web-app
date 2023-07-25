@@ -129,3 +129,7 @@ jobs:
             target: 'https://gentile-gonzalo-8a21783a08a4.herokuapp.com/'
             rules_file_name: '.zap/rules.tsv'
             cmd_options: '-a'
+        - uses: actions/upload-artifact@v3
+          with:
+            name: owasp-report
+            path: testreport.* 
