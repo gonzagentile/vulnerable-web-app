@@ -37,14 +37,7 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: horusec
-        path: horusec.json
-    - name: tanasec 
-      env:
-        ALLOW_FAILURE: true
-        TOOLS: horusec
-        FILE: horusec.json
-        CRITICAL: 5
-      run: docker run --rm -i -v $(pwd)/horusec.json:/app/horusec.json:z -e FILE=$FILE -e TOOLS=$TOOLS -e ALLOW_FAILURE=$ALLOW_FAILURE -e CRITICAL=$CRITICAL roxsross12/tanasec:1.0.0  
+        path: horusec.json  
       
   linter:
     name: linter dockerfile
@@ -55,6 +48,11 @@ jobs:
     - name: Install hadolint
       continue-on-error: true
       run: docker run --rm -i hadolint/hadolint < Dockerfile
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: hadolint
+        path: hadolint.json  
 
   trivy:
     name: Scan image Trivy
@@ -75,13 +73,13 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'trivy-image:${{ github.sha }}'
-          format: 'html'
+          format: '@contrib/html.tpl'
           output: 'trivy-results.html'
 
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-results.html'
+    #  - name: Upload Trivy scan results to GitHub Security tab
+    #   uses: github/codeql-action/upload-sarif@v2
+    #    with:
+    #      sarif_file: 'trivy-results.html'
       
       #- name: Run Trivy vulnerability scanner
       #  uses: aquasecurity/trivy-action@master
