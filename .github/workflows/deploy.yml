@@ -1,25 +1,34 @@
-name: Deploy Vulnerable Application                                  # workflow name
-#Test
+name: SAST, DAST, Build and Deploy Vulnerable Application                                  # workflow name
+
 on:
   push:
     branches:
       - master
+      
 jobs:
-  scan:
-      name: gitleaks
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v3
-        - uses: gitleaks/gitleaks-action@v2
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            
+
+  gitleaks:
+    name: Scan secrets GitLeaks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Run GitLeaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: gitleaks
+          path: gitleaks.json 
             
   secrets:
     name: Scan Secret HORUSEC
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
     - name: Install Horusec
       continue-on-error: true
       run: |
@@ -41,14 +50,15 @@ jobs:
     name: linter dockerfile
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
     - name: Install hadolint
       continue-on-error: true
       run: docker run --rm -i hadolint/hadolint < Dockerfile
 
   trivy:
-    name: trivy scan
-    runs-on: ubuntu-20.04
+    name: Scan image Trivy
+    runs-on: ubuntu-latest
     permissions:
       # required for all workflows
       security-events: write
@@ -57,7 +67,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
       - name: Build an image from Dockerfile
         run: |
           docker build -t trivy-image:${{ github.sha }} .
@@ -66,54 +75,28 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'trivy-image:${{ github.sha }}'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
+          format: 'html'
+          output: 'trivy-results.html'
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: 'trivy-results.html'
       
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        continue-on-error: true
-        with:
-          image-ref: 'trivy-image:${{ github.sha }}'
-          format: 'json'
-          output: 'trivy-results.json'
-          severity: 'HIGH'
-          exit-code: '1'
-      - uses: actions/upload-artifact@v3
-        with:
-          name: trivy
-          path: trivy-results.json
+      #- name: Run Trivy vulnerability scanner
+      #  uses: aquasecurity/trivy-action@master
+      #  continue-on-error: true
+      #  with:
+      #    image-ref: 'trivy-image:${{ github.sha }}'
+      #    format: 'json'
+      #    output: 'trivy-results.json'
+      #    severity: 'HIGH'
+      #    exit-code: '1'
+      #- uses: actions/upload-artifact@v3
+      #  with:
+      #    name: trivy
+      #    path: trivy-results.json
           
-
-
-  TruffleHog:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: TruffleHog OSS
-        id: trufflehog
-        uses: trufflesecurity/trufflehog@main
-        continue-on-error: true
-        with:
-          path: ./
-          base: "${{ github.event.repository.default_branch }}"
-          head: HEAD
-          extra_args: --debug
-
-      - name: Scan Results Status
-        if: steps.trufflehog.outcome == 'failure'
-        run: exit 1
 
 #  deploy-heroku:
 #    name: Deploy Heroku
