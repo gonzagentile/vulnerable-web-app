@@ -43,7 +43,6 @@ jobs:
           sarif_file: 'semgrep.sarif'
           
   sonarcloud:
-    needs: recon
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
