@@ -22,57 +22,91 @@ jobs:
         with:
           name: gitleaks
           path: gitleaks.json 
-            
-  secrets:
-    name: Scan Secret HORUSEC
+  
+  semgrep-sast:
+    name: SAST Semgrep
+    runs-on: ubuntu-latest
+    permissions:
+      # required for all workflows
+      security-events: write
+      actions: read
+      contents: read
+    container: returntocorp/semgrep
+    steps:
+      - uses: actions/checkout@v3
+      - run: semgrep ci --sarif --output=semgrep.sarif || true
+        env:
+          SEMGREP_RULES: p/default
+      - name: Upload Semgrep scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'semgrep.sarif'
+  
+  npmaudit:
+    name: npm audit
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    - name: Install Horusec
-      continue-on-error: true
-      run: |
-        curl -fsSL https://raw.githubusercontent.com/ZupIT/horusec/master/deployments/scripts/install.sh | bash -s latest
-        horusec start -p="./" -e="true" -o="json" -O="./horusec.json" 
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+    - run: npm audit --registry=https://registry.npmjs.org  --json > report_npmaudit.json
+      continue-on-error: true   
     - uses: actions/upload-artifact@v3
       with:
-        name: horusec
-        path: horusec.json  
+        name: npm audit
+        path: report_npmaudit.json 
+            
+ # secrets:
+ #   name: Scan Secret HORUSEC
+ #   runs-on: ubuntu-latest
+ #   steps:
+ #   - name: Checkout code
+ #     uses: actions/checkout@v3
+ #   - name: Install Horusec
+ #     continue-on-error: true
+ #     run: |
+ #       curl -fsSL https://raw.githubusercontent.com/ZupIT/horusec/master/deployments/scripts/install.sh | bash -s latest
+ #       horusec start -p="./" -e="true" -o="json" -O="./horusec.json" 
+ #   - uses: actions/upload-artifact@v3
+ #     with:
+ #       name: horusec
+ #       path: horusec.json  
       
-  linter:
-    name: linter dockerfile
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    - name: Install hadolint
-      continue-on-error: true
-      run: docker run --rm -i hadolint/hadolint < Dockerfile
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: hadolint
-        path: hadolint.json  
+ # linter:
+ #   name: linter dockerfile
+#  runs-on: ubuntu-latest
+#    steps:
+#    - name: Checkout code
+#      uses: actions/checkout@v3 
+#    - name: Install hadolint
+#      continue-on-error: true
+#      run: docker run --rm -i hadolint/hadolint < Dockerfile
+#   - name: Upload artifact
+#      uses: actions/upload-artifact@v3
+#      with:
+#        name: hadolint
+#       path: hadolint.json  
    
-  synk:
-    name: Snyk
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [12.x]
-    steps:
-        - uses: actions/checkout@master
-        - name: User Node.js ${{ matrix.node-version }}
-          uses: snyk/actions/setup-node@v1
-          with:
-            node-version: ${{ matrix.node-version }}
-        - name: Installing snyk-delta and dependecies
-          run: npm i -g snyk-delta
-        - uses: actions/actions/setup@master
-        - name: snyk test
-          run: snyk test --json --print-deps | snyk-delta
-          env:
-           SYNK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+#  synk:
+#    name: Snyk
+#    runs-on: ubuntu-latest
+#    strategy:
+#      matrix:
+#        node-version: [12.x]
+#    steps:
+#        - uses: actions/checkout@master
+#        - name: User Node.js ${{ matrix.node-version }}
+#          uses: snyk/actions/setup-node@v1
+#          with:
+#            node-version: ${{ matrix.node-version }}
+#        - name: Installing snyk-delta and dependecies
+#          run: npm i -g snyk-delta
+#        - uses: actions/actions/setup@master
+#        - name: snyk test
+#          run: snyk test --json --print-deps | snyk-delta
+#          env:
+#           SYNK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
   trivy:
     name: Scan image Trivy
