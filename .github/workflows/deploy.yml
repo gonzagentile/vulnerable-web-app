@@ -57,17 +57,22 @@ jobs:
   synk:
     name: Snyk
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.x]
     steps:
-        - uses: actions/checkout@v3
-        - name: Run Snyk to check for vulnerabilities
-          uses: snyk/actions/node@master
-          env:
-            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        - name: Upload Snyk scan results to GitHub Security tab
-          uses: actions/upload-artifact@v3
+        - uses: actions/checkout@master
+        - name: User Node.js ${{ matrix.node-version }}
+          uses: snyk/actions/setup-node@v1
           with:
-            name: synk
-            path: snyk-results.json
+            node-version: ${{ matrix.node-version }}
+        - name: Installing snyk-delta and dependecies
+          run: npm i -g snyk-delta
+        - uses: actions/actions/setup@master
+        - name: snyk test
+          run: snyk test --json --print-deps | snyk-delta
+          env:
+           SYNK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
   trivy:
     name: Scan image Trivy
