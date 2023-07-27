@@ -53,6 +53,21 @@ jobs:
       with:
         name: hadolint
         path: hadolint.json  
+   
+  synk:
+    name: Snyk
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v3
+        - name: Run Snyk to check for vulnerabilities
+          uses: snyk/actions/node@master
+          env:
+            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        - name: Upload Snyk scan results to GitHub Security tab
+          uses: actions/upload-artifact@v3
+          with:
+            name: synk
+            path: snyk-results.json
 
   trivy:
     name: Scan image Trivy
@@ -80,6 +95,8 @@ jobs:
         with:
           name: trivy
           path: trivy-results.json
+          
+      
 
     #  - name: Upload Trivy scan results to GitHub Security tab
     #   uses: github/codeql-action/upload-sarif@v2
@@ -100,18 +117,18 @@ jobs:
       #    name: trivy
       #    path: trivy-results.json
           
-  deploy-heroku:
-    name: Deploy Heroku
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
-        with:
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: "gentile-gonzalo" #Must be unique in Heroku
-          heroku_email: "gonza.gentile@gmail.com"
-          branch: "master"
-          usedocker: true
+#  deploy-heroku:
+#    name: Deploy Heroku
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#      - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+#        with:
+#          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+#          heroku_app_name: "gentile-gonzalo" #Must be unique in Heroku
+#          heroku_email: "gonza.gentile@gmail.com"
+#          branch: "master"
+#          usedocker: true
 
 #  zap_scan:
 #      runs-on: ubuntu-latest
