@@ -45,6 +45,11 @@ jobs:
   snyk-code-SCA:
     name: Snyk Code
     runs-on: ubuntu-latest
+    permissions:
+      # required for all workflows
+      security-events: write
+      actions: read
+      contents: read
     steps:
       - uses: actions/checkout@master
       - name: Run Snyk to check for vulnerabilities
