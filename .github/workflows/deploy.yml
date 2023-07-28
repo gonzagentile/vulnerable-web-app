@@ -23,38 +23,65 @@ jobs:
           name: gitleaks
           path: gitleaks.json 
 
-  semgrep-full:
-      runs-on: ubuntu-latest
-      container:
-        image: returntocorp/semgrep
+  semgrep-sast:
+    name: SAST Semgrep
+    runs-on: ubuntu-latest
+    permissions:
+      # required for all workflows
+      security-events: write
+      actions: read
+      contents: read
+    container: returntocorp/semgrep
+    steps:
+      - uses: actions/checkout@v3
+      - run: semgrep ci --sarif --output=semgrep.sarif || true
+        env:
+            SEMGREP_RULES: p/default
+      - run: semgrep ci --json --output=semgrep.json || true
+        env:
+          SEMGREP_RULES: p/default
+      - name: Upload Semgrep scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'semgrep.sarif'
+      - name: Semgrep Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: semgrep.json
+          path: semgrep.json
+          
+  #semgrep-full:
+  #    runs-on: ubuntu-latest
+  #    container:
+  #      image: returntocorp/semgrep
 
-      steps:
+  #    steps:
 
         # step 1
-        - name: clone application source code
-          uses: actions/checkout@v3
+  #      - name: clone application source code
+  #        uses: actions/checkout@v3
 
         # step 2
-        - name: full scan
-          run: |
-            semgrep \
-              --sarif --output report.sarif \
-              --metrics=off \
-              --config="p/default"
+  #      - name: full scan
+  #        run: |
+  #          semgrep \
+  #            --sarif --output report.sarif \
+  #            --metrics=off \
+  #            --config="p/default"
 
         # step 3
-        - name: save report as pipeline artifact
-          uses: actions/upload-artifact@v3
-          with:
-            name: report.sarif
-            path: report.sarif
+  #      - name: save report as pipeline artifact
+  #        uses: actions/upload-artifact@v3
+   #       with:
+  #          name: report.sarif
+  #          path: report.sarif
 
         # step 4
-        - name: publish code scanning alerts
-          uses: github/codeql-action/upload-sarif@v2
-          with:
-            sarif_file: report.sarif
-            category: semgrep
+  #      - name: publish code scanning alerts
+  #        uses: github/codeql-action/upload-sarif@v2
+  #        with:
+  #          sarif_file: report.sarif
+  #          category: semgrep
   
 #  semgrep:
 #    name: semgrep scan
