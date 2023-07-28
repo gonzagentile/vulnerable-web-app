@@ -15,8 +15,7 @@ jobs:
 
       - name: Install Trufflehog
         run: |
-          wget https://github.com/trufflesecurity/truffleHog/releases/latest/download/truffleHog_linux_amd64.gz
-          gunzip truffleHog_linux_amd64.gz
+          wget https://github.com/trufflesecurity/truffleHog/releases/download/v3.6.0/truffleHog_linux_amd64
           chmod +x truffleHog_linux_amd64
           sudo mv truffleHog_linux_amd64 /usr/local/bin/trufflehog
 
