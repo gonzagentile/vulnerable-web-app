@@ -30,7 +30,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: trufflehog
-          path: trufflehog.json
+          path: ./*.json
 
   gitleaks:
     name: Scan secrets GitLeaks
