@@ -6,29 +6,25 @@ on:
       - master
       
 jobs:
-  trufflehog_scan:
+  TruffleHog:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Install Python and pip
-        uses: actions/setup-python@v2
+        uses: actions/checkout@v3
         with:
-          python-version: '3.8'  # Replace 'x' with the desired version, e.g., '3.8'
-
-      - name: Install Trufflehog
-        run: pip install trufflehog
-
-      - name: Run Trufflehog scan and save JSON output
-        run: trufflehog git https://github.com/gonzagentile/vulnerable-web-app --only-verified --json > trufflehog_scan_result.json
-
-      - name: Upload JSON artifact
-        uses: actions/upload-artifact@v2
+          fetch-depth: 0
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
         with:
-          name: trufflehog_scan_result
-          path: trufflehog_scan_result.json
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified --json
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: trufflehog
+          path: "*.json"
           
   gitleaks:
     name: Scan secrets GitLeaks
