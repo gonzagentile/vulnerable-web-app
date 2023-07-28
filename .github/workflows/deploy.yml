@@ -7,6 +7,22 @@ on:
       
 jobs:
 
+  secrets:
+    name: Scan Secret HORUSEC
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Install Horusec
+      continue-on-error: true
+      run: |
+        curl -fsSL https://raw.githubusercontent.com/ZupIT/horusec/master/deployments/scripts/install.sh | bash -s latest
+        horusec start -p="./" -e="true" -o="json" -O="./horusec.json" 
+    - uses: actions/upload-artifact@v3
+      with:
+        name: horusec
+        path: horusec.json 
+
   gitleaks:
     name: Scan secrets GitLeaks
     runs-on: ubuntu-latest
