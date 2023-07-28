@@ -25,12 +25,12 @@ jobs:
           path: ./
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
-          extra_args: --debug --only-verified --json
+          extra_args: --debug --only-verified --json > trufflehog.json
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: trufflehog
-          path: ./*.json
+          path: trufflehog.json
 
   gitleaks:
     name: Scan secrets GitLeaks
