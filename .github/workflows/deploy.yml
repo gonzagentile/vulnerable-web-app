@@ -163,7 +163,7 @@ jobs:
           uses: zaproxy/action-full-scan@v0.5.1
           with:
             docker_name: 'owasp/zap2docker-stable'
-            target: 'https://gentile-gonzalo-d861fc7e5294.herokuapp.com/'
+            target: 'https://gentile-gonzalo-194064ed3b32.herokuapp.com/'
             rules_file_name: '.zap/rules.tsv'
             cmd_options: '-a'
             artifact_name: 'zap-dast'
