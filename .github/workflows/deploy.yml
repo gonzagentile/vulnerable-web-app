@@ -9,6 +9,11 @@ jobs:
 
   TruffleHog:
     runs-on: ubuntu-latest
+    permissions:
+      # required for all workflows
+      security-events: write
+      actions: read
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -20,7 +25,12 @@ jobs:
           path: ./
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
-          extra_args: --debug --only-verified
+          extra_args: --debug --only-verified --json
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: trufflehog
+          path: trufflehog.json
 
   gitleaks:
     name: Scan secrets GitLeaks
