@@ -13,12 +13,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Install Python and pip
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'  # Replace 'x' with the desired version, e.g., '3.8'
+
       - name: Install Trufflehog
-        run: |
-          wget https://github.com/trufflesecurity/trufflehog/releases/download/v3.45.3/trufflehog_3.45.3_linux_arm64.tar.gz
-          tar xvzf trufflehog_3.45.3_linux_arm64.tar.gz
-          chmod +x trufflehog
-          sudo mv trufflehog /usr/local/bin/trufflehog
+        run: pip install trufflehog
 
       - name: Run Trufflehog scan and save JSON output
         run: trufflehog --regex --entropy=False . > trufflehog_scan_result.json
