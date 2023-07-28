@@ -22,37 +22,70 @@ jobs:
         with:
           name: gitleaks
           path: gitleaks.json 
+
+  semgrep-full:
+      runs-on: ubuntu-latest
+      container:
+        image: returntocorp/semgrep
+
+      steps:
+
+        # step 1
+        - name: clone application source code
+          uses: actions/checkout@v3
+
+        # step 2
+        - name: full scan
+          run: |
+            semgrep \
+              --sarif --output report.sarif \
+              --metrics=off \
+              --config="p/default"
+
+        # step 3
+        - name: save report as pipeline artifact
+          uses: actions/upload-artifact@v3
+          with:
+            name: report.sarif
+            path: report.sarif
+
+        # step 4
+        - name: publish code scanning alerts
+          uses: github/codeql-action/upload-sarif@v2
+          with:
+            sarif_file: report.sarif
+            category: semgrep
   
-  semgrep:
-    name: semgrep scan
-    runs-on: ubuntu-latest
-    permissions:
-      # required for all workflows
-      security-events: write
-      actions: read
-      contents: read
-    container:
-      image: returntocorp/semgrep:latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Run semgrep security scanner
-        continue-on-error: true
-        run: |
-          cat << 'EOF' | bash
-              semgrep ci --config=auto --sarif --output=semgrep.sarif --max-target-bytes=2MB
-              EXIT_CODE=$?
-              if [ "$EXIT_CODE" = "0" ] || [ "$EXIT_CODE" = "1" ]
-              then
-                exit 0
-              else
-                exit $EXIT_CODE
-              fi
-          EOF
-      - name: Upload SARIF file for GitHub Advanced Security Dashboard
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: semgrep.sarif
+#  semgrep:
+#    name: semgrep scan
+#    runs-on: ubuntu-latest
+#    permissions:
+#      # required for all workflows
+#      security-events: write
+#      actions: read
+#      contents: read
+#    container:
+#      image: returntocorp/semgrep:latest
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v3
+#      - name: Run semgrep security scanner
+#        continue-on-error: true
+#        run: |
+#          cat << 'EOF' | bash
+#              semgrep ci --config=auto --sarif --output=semgrep.sarif --max-target-bytes=2MB
+#              EXIT_CODE=$?
+#              if [ "$EXIT_CODE" = "0" ] || [ "$EXIT_CODE" = "1" ]
+#              then
+#                exit 0
+#              else
+#                exit $EXIT_CODE
+#              fi
+#          EOF
+#      - name: Upload SARIF file for GitHub Advanced Security Dashboard
+#        uses: github/codeql-action/upload-sarif@v2
+#        with:
+#          sarif_file: semgrep.sarif
   
 #  semgrep-sast:
 #    name: SAST Semgrep
