@@ -23,24 +23,55 @@ jobs:
           name: gitleaks
           path: gitleaks.json 
   
-  semgrep-sast:
-    name: SAST Semgrep
+  semgrep:
+    name: semgrep scan
     runs-on: ubuntu-latest
     permissions:
       # required for all workflows
       security-events: write
       actions: read
       contents: read
-    container: returntocorp/semgrep
+    container:
+      image: returntocorp/semgrep:latest
     steps:
-      - uses: actions/checkout@v3
-      - run: semgrep ci --sarif --output=semgrep.sarif || true
-        env:
-          SEMGREP_RULES: p/default
-      - name: Upload Semgrep scan results to GitHub Security tab
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Run semgrep security scanner
+        continue-on-error: true
+        run: |
+          cat << 'EOF' | bash
+              semgrep ci --config=auto --sarif --output=semgrep.sarif --max-target-bytes=2MB
+              EXIT_CODE=$?
+              if [ "$EXIT_CODE" = "0" ] || [ "$EXIT_CODE" = "1" ]
+              then
+                exit 0
+              else
+                exit $EXIT_CODE
+              fi
+          EOF
+      - name: Upload SARIF file for GitHub Advanced Security Dashboard
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: 'semgrep.sarif'
+          sarif_file: semgrep.sarif
+  
+#  semgrep-sast:
+#    name: SAST Semgrep
+#    runs-on: ubuntu-latest
+#    permissions:
+#      # required for all workflows
+#      security-events: write
+#      actions: read
+#      contents: read
+#    container: returntocorp/semgrep
+#    steps:
+#      - uses: actions/checkout@v3
+#      - run: semgrep ci --sarif --output=semgrep.sarif || true
+#        env:
+#          SEMGREP_RULES: p/default
+#      - name: Upload Semgrep scan results to GitHub Security tab
+#        uses: github/codeql-action/upload-sarif@v2
+#        with:
+#          sarif_file: 'semgrep.sarif'
           
   snyk-code-SCA:
     name: Snyk Code
