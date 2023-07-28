@@ -22,7 +22,7 @@ jobs:
         run: pip install trufflehog
 
       - name: Run Trufflehog scan and save JSON output
-        run: trufflehog --regex --entropy=False . > trufflehog_scan_result.json
+        run: trufflehog git https://github.com/gonzagentile/vulnerable-web-app --only-verified --json > trufflehog_scan_result.json
 
       - name: Upload JSON artifact
         uses: actions/upload-artifact@v2
