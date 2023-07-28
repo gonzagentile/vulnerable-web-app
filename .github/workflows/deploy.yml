@@ -50,14 +50,9 @@ jobs:
           name: semgrep.json
           path: semgrep.json
     
-  snyk-code-SCA:
+  snyk-code:
     name: Snyk Code
     runs-on: ubuntu-latest
-    permissions:
-      # required for all workflows
-      security-events: write
-      actions: read
-      contents: read
     steps:
       - uses: actions/checkout@master
       - name: Run Snyk to check for vulnerabilities
@@ -67,14 +62,14 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: >
-            --severity-threshold=high
+            --severity-threshold=low
             --all-projects
             --sarif-file-output=snyk-code.sarif
       - name: Upload SARIF file
         #if: always()
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: snyk-code.sarif 
+          sarif_file: snyk-code.sarif
           
   sonarcloud:
     runs-on: ubuntu-latest
