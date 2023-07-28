@@ -15,9 +15,10 @@ jobs:
 
       - name: Install Trufflehog
         run: |
-          wget https://github.com/trufflesecurity/truffleHog/releases/download/v3.6.0/truffleHog_linux_amd64
-          chmod +x truffleHog_linux_amd64
-          sudo mv truffleHog_linux_amd64 /usr/local/bin/trufflehog
+          wget https://github.com/trufflesecurity/trufflehog/releases/download/v3.45.3/trufflehog_3.45.3_linux_arm64.tar.gz
+          tar xvzf trufflehog_3.45.3_linux_arm64.tar.gz
+          chmod +x trufflehog
+          sudo mv trufflehog /usr/local/bin/trufflehog
 
       - name: Run Trufflehog scan and save JSON output
         run: trufflehog --regex --entropy=False . > trufflehog_scan_result.json
